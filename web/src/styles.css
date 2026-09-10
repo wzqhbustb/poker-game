@@ -1,0 +1,444 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #1a1d23;
+  color: #e6e6e6;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 20px;
+  background: #22262e;
+  border-bottom: 1px solid #333;
+}
+
+.app-title {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.tab {
+  background: none;
+  border: none;
+  color: #9aa0aa;
+  font-size: 15px;
+  padding: 6px 14px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.tab-active {
+  color: #fff;
+  border-bottom-color: #4f9cff;
+}
+
+.conn {
+  margin-left: auto;
+  font-size: 13px;
+}
+.conn-ok { color: #4caf50; }
+.conn-bad { color: #f44336; }
+
+.banner {
+  padding: 8px 16px;
+  background: #5a4a1e;
+  text-align: center;
+  cursor: default;
+}
+.banner-error { background: #5a2323; cursor: pointer; }
+
+/* ---------- 牌桌 ---------- */
+
+.table-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.poker-table {
+  position: relative;
+  width: 860px;
+  height: 520px;
+  margin: 16px 0;
+}
+
+.table-felt {
+  position: absolute;
+  left: 15%;
+  top: 18%;
+  width: 70%;
+  height: 64%;
+  background: radial-gradient(ellipse at center, #2e7d4f 0%, #1f5c39 80%);
+  border-radius: 50%;
+  border: 6px solid #4a3520;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.community {
+  min-height: 60px;
+}
+
+.pot {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffe9a8;
+}
+
+.hand-result {
+  font-size: 14px;
+  color: #c8ffd4;
+  text-align: center;
+}
+
+.seat {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: #2a2f38;
+  border: 2px solid #3a4150;
+  border-radius: 10px;
+  padding: 6px 10px;
+  min-width: 108px;
+  text-align: center;
+  font-size: 13px;
+}
+
+.seat-active {
+  border-color: #4f9cff;
+  box-shadow: 0 0 12px #4f9cff88;
+}
+
+.seat-you {
+  border-color: #d4a017;
+}
+
+.seat-folded {
+  opacity: 0.4;
+}
+
+.seat-out {
+  opacity: 0.25;
+}
+
+.seat-name {
+  font-weight: 600;
+}
+
+.seat-style {
+  font-size: 11px;
+  color: #8fb8ff;
+}
+
+.seat-stack {
+  color: #ffe9a8;
+}
+
+.seat-bet {
+  position: absolute;
+  top: -14px;
+  right: -10px;
+  background: #d4a017;
+  color: #1a1d23;
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.seat-thinking {
+  font-size: 11px;
+  color: #4f9cff;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.3; }
+}
+
+.dealer-btn {
+  display: inline-block;
+  background: #fff;
+  color: #000;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 11px;
+  margin-left: 4px;
+}
+
+/* ---------- 牌 ---------- */
+
+.card-list {
+  display: inline-flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: #f5f5f5;
+  border-radius: 4px;
+  padding: 2px 5px;
+  line-height: 1.1;
+  font-weight: 700;
+  font-size: 13px;
+  box-shadow: 0 1px 2px #0008;
+}
+
+.card-big {
+  font-size: 20px;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.card-red { color: #d32f2f; }
+.card-black { color: #1a1d23; }
+
+/* ---------- 行动面板 ---------- */
+
+.action-panel {
+  width: 860px;
+  background: #22262e;
+  border: 1px solid #3a4150;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+
+.timer-bar {
+  height: 5px;
+  background: #333;
+  border-radius: 3px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.timer-fill {
+  height: 100%;
+  background: #4caf50;
+  transition: width 0.2s linear;
+}
+
+.timer-urgent .timer-fill {
+  background: #f44336;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  background: #3a4150;
+  color: #e6e6e6;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn:hover { background: #4a5262; }
+.btn:disabled { opacity: 0.4; cursor: default; }
+
+.btn-fold { background: #7a3030; }
+.btn-check { background: #2e5c3a; }
+.btn-call { background: #2e5c3a; }
+.btn-raise { background: #2b4a7a; }
+.btn-small { padding: 4px 10px; font-size: 12px; }
+
+.raise-group {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex: 1;
+}
+
+.raise-group input[type='range'] {
+  flex: 1;
+  min-width: 120px;
+}
+
+.raise-quick {
+  display: flex;
+  gap: 4px;
+}
+
+.rebuy-bar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  background: #5a4a1e;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.event-log {
+  width: 860px;
+  max-height: 140px;
+  overflow-y: auto;
+  background: #16181d;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #9aa0aa;
+  margin-bottom: 20px;
+}
+
+/* ---------- 复盘 ---------- */
+
+.review-page {
+  display: flex;
+  gap: 16px;
+  padding: 16px 20px;
+  align-items: flex-start;
+}
+
+.hand-list {
+  width: 300px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.hand-item {
+  background: #22262e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.hand-item:hover { border-color: #4f9cff; }
+.hand-selected { border-color: #d4a017; }
+.hand-item-sub { color: #9aa0aa; margin-top: 2px; }
+
+.net-pos { color: #4caf50; }
+.net-neg { color: #f44336; }
+
+.replay {
+  flex: 1;
+  background: #22262e;
+  border-radius: 10px;
+  padding: 16px;
+  min-height: 400px;
+}
+
+.replay-empty {
+  color: #9aa0aa;
+  text-align: center;
+  padding-top: 120px;
+}
+
+.replay-board {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.replay-pot {
+  color: #ffe9a8;
+  font-weight: 600;
+}
+
+.replay-seats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.replay-seat {
+  background: #2a2f38;
+  border: 2px solid #3a4150;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.replay-action {
+  color: #8fb8ff;
+  margin-top: 2px;
+}
+
+.replay-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.replay-controls input[type='range'] {
+  flex: 1;
+}
+
+.replay-streets {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* ---------- 统计 ---------- */
+
+.stats-page {
+  padding: 24px 32px;
+  max-width: 900px;
+}
+
+.stats-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 16px 0;
+}
+
+.stats-table th,
+.stats-table td {
+  border: 1px solid #333;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.stats-table th {
+  background: #2a2f38;
+}
+
+.hint {
+  color: #9aa0aa;
+  font-size: 12px;
+}
+
+/* ---------- 教练点评 ---------- */
+
+.coach-section {
+  margin-top: 16px;
+  border-top: 1px solid #333;
+  padding-top: 12px;
+}
+
+.coach-content {
+  margin-top: 10px;
+  background: #1a1d23;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+}

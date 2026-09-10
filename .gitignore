@@ -1,0 +1,21 @@
+# 前端
+web/node_modules/
+web/dist/
+
+# Go 编译产物
+server/bin/
+pockerd
+
+# 运行时数据（手牌数据库、点评缓存）
+server/data/
+
+# 日志与临时文件
+*.log
+*.pid
+
+# macOS
+.DS_Store
+
+# 编辑器
+.idea/
+.vscode/
