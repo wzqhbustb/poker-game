@@ -89,6 +89,8 @@ function reduce(st: TableState, m: Msg): TableState {
       }
       return { ...st, log, handEnd: msg, actionReq: null }
     }
+    case 'info':
+      return { ...st, log: pushLog(st.log, `ℹ ${msg.message}`) }
     case 'error':
       return { ...st, error: msg.message }
   }

@@ -93,7 +93,12 @@ export interface ErrorMsg {
   message: string
 }
 
-export type ServerMsg = Welcome | State | ActionRequest | HandEvent | HandEnd | ErrorMsg
+export interface InfoMsg {
+  type: 'info'
+  message: string
+}
+
+export type ServerMsg = Welcome | State | ActionRequest | HandEvent | HandEnd | ErrorMsg | InfoMsg
 
 // REST /api/hands
 export interface PlayerRecord {
@@ -139,4 +144,5 @@ export interface Stats {
   bets_raises: number
   calls: number
   net_profit: number
+  big_blind: number
 }

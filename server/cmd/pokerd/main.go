@@ -26,7 +26,7 @@ func main() {
 	addr := flag.String("addr", ":8080", "HTTP 监听地址")
 	dbPath := flag.String("db", "data/poker.db", "SQLite 数据库路径")
 	buyin := flag.Int("buyin", 200, "买入筹码（100bb）")
-	timeout := flag.Duration("timeout", 30*time.Second, "人类行动超时（超时自动 check/fold）")
+	timeout := flag.Duration("timeout", 60*time.Second, "人类行动超时（超时自动 check/fold）")
 	fast := flag.Bool("fast", false, "bot 不 sleep（测试用）")
 	seed := flag.Int64("seed", 0, "牌桌随机种子，0 表示随机")
 	webDir := flag.String("web", "web/dist", "前端静态文件目录")
@@ -65,7 +65,7 @@ func main() {
 	mux.HandleFunc("/ws", serveWS(tbl))
 	mux.HandleFunc("GET /api/hands", listHands(st))
 	mux.HandleFunc("GET /api/hands/{id}", getHand(st))
-	mux.HandleFunc("GET /api/stats", getStats(st))
+	mux.HandleFunc("GET /api/stats", getStats(st, tbl))
 	mux.HandleFunc("GET /api/review/{id}", getReview(st, reviewCfg))
 	mux.HandleFunc("POST /api/review/{id}", postReview(st, reviewCfg))
 	if info, err := os.Stat(*webDir); err == nil && info.IsDir() {
@@ -97,7 +97,7 @@ func serveWS(tbl *table.Table) http.HandlerFunc {
 		}
 		defer conn.CloseNow()
 
-		client := &table.Client{Name: "You", Send: make(chan any, 256)}
+		client := &table.Client{Name: "You", Send: make(chan any, 1024)}
 		ctx, cancel := context.WithCancel(r.Context())
 		defer cancel()
 		defer tbl.Detach(client)
@@ -167,6 +167,12 @@ func listHands(st *store.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		q := r.URL.Query()
 		limit, _ := strconv.Atoi(q.Get("limit"))
+		// 优先游标分页（before_id），翻页期间有新手牌入库也不会漏/重
+		if beforeID, err := strconv.ParseInt(q.Get("before_id"), 10, 64); err == nil && beforeID > 0 {
+			hands, err := st.ListHandsBefore(int64(limit), beforeID)
+			writeJSON(w, hands, err)
+			return
+		}
 		offset, _ := strconv.Atoi(q.Get("offset"))
 		hands, err := st.ListHands(limit, offset)
 		writeJSON(w, hands, err)
@@ -189,10 +195,15 @@ func getHand(st *store.DB) http.HandlerFunc {
 	}
 }
 
-func getStats(st *store.DB) http.HandlerFunc {
+func getStats(st *store.DB, tbl *table.Table) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		stats, err := st.Stats(table.HumanSeat)
-		writeJSON(w, stats, err)
+		_, bb := tbl.Blinds()
+		writeJSON(w, map[string]any{
+			"hands": stats.Hands, "vpip": stats.VPIP, "pfr": stats.PFR,
+			"af": stats.AF, "bets_raises": stats.BetsRaises, "calls": stats.Calls,
+			"net_profit": stats.NetProfit, "big_blind": bb,
+		}, err)
 	}
 }
 

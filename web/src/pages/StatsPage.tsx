@@ -30,8 +30,9 @@ export function StatsPage() {
   if (err) return <div className="banner banner-error">{err}</div>
   if (!stats) return <div className="stats-page">加载中…</div>
 
+  const bb = stats.big_blind > 0 ? stats.big_blind : 2
   const bb100 =
-    stats.hands > 0 ? (stats.net_profit / stats.hands) * (100 / 2) : 0
+    stats.hands > 0 ? (stats.net_profit / stats.hands) * (100 / bb) : 0
 
   return (
     <div className="stats-page">
@@ -66,7 +67,7 @@ export function StatsPage() {
             </td>
             <td colSpan={2} className="hint">
               每百手 {bb100 >= 0 ? '+' : ''}
-              {bb100.toFixed(1)} bb/100（盲注 1/2）
+              {bb100.toFixed(1)} bb/100（大盲 {bb}）
             </td>
           </tr>
           <tr>

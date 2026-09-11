@@ -44,7 +44,7 @@ func (c Config) withDefaults() Config {
 		c.BuyIn = 200
 	}
 	if c.ActionTimeout <= 0 {
-		c.ActionTimeout = 30 * time.Second
+		c.ActionTimeout = 60 * time.Second
 	}
 	return c
 }
@@ -61,6 +61,16 @@ func (c *Client) send(v any) {
 	case c.Send <- v:
 	default:
 		log.Printf("table: client %q send buffer full, dropping %T", c.Name, v)
+	}
+}
+
+// sendCritical 用于不可丢弃的消息（welcome/action_request/hand_end/info）：
+// 缓冲满时最多等 5 秒，仍发不出去才放弃（此时连接多半已死，断线逻辑会兜底）。
+func (c *Client) sendCritical(v any) {
+	select {
+	case c.Send <- v:
+	case <-time.After(5 * time.Second):
+		log.Printf("table: client %q critical send timed out, dropping %T", c.Name, v)
 	}
 }
 
@@ -114,6 +124,9 @@ func New(cfg Config, st *store.DB) *Table {
 		thinking: -1,
 	}
 }
+
+// Blinds 返回牌桌的（小盲, 大盲）。
+func (t *Table) Blinds() (int, int) { return t.cfg.SmallBlind, t.cfg.BigBlind }
 
 // Attach 人类客户端入座（hello）。重复调用会顶替旧连接。
 func (t *Table) Attach(c *Client) { t.joinCh <- c }
@@ -232,7 +245,7 @@ func (t *Table) humanTurn(ctx context.Context, e *engine.Engine) {
 		return
 	}
 	deadline := time.Now().Add(t.cfg.ActionTimeout)
-	t.send(proto.ActionRequest{
+	t.sendCritical(proto.ActionRequest{
 		Type:     proto.SActionRequest,
 		Deadline: deadline.UnixMilli(),
 		Legal: proto.LegalInfo{
@@ -268,7 +281,7 @@ func (t *Table) humanTurn(ctx context.Context, e *engine.Engine) {
 				err = e.Act(act)
 			}
 			if err != nil {
-				t.send(proto.ErrorMsg{Type: proto.SError, Message: err.Error()})
+				t.sendCritical(proto.ErrorMsg{Type: proto.SError, Message: err.Error()})
 				continue
 			}
 			return
@@ -322,10 +335,10 @@ func (t *Table) wait(ctx context.Context, d time.Duration) {
 
 func (t *Table) handleJoin(c *Client) {
 	if t.human != nil && t.human != c {
-		t.human.send(proto.ErrorMsg{Type: proto.SError, Message: "已被新连接顶替"})
+		t.human.sendCritical(proto.ErrorMsg{Type: proto.SError, Message: "已被新连接顶替"})
 	}
 	t.human = c
-	c.send(proto.Welcome{
+	c.sendCritical(proto.Welcome{
 		Type: proto.SWelcome,
 		Seat: HumanSeat,
 		Config: proto.TableConfig{
@@ -350,7 +363,7 @@ func (t *Table) handleRebuy(c *Client) {
 		return
 	}
 	t.rebuyPending = true
-	c.send(proto.ErrorMsg{Type: proto.SError, Message: "补码将在下一手生效"})
+	c.sendCritical(proto.InfoMsg{Type: proto.SInfo, Message: "补码将在下一手生效"})
 }
 
 // defaultAction 超时/掉线默认动作：能过牌则过牌，否则弃牌。
