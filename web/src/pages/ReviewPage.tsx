@@ -86,19 +86,21 @@ export function ReviewPage() {
   const [reviewLoading, setReviewLoading] = useState(false)
   const [reviewErr, setReviewErr] = useState('')
 
-  const load = async (offset: number) => {
+  // 游标分页：before_id 用当前已加载的最旧一手，翻页期间有新手牌入库也不会漏/重
+  const load = async (beforeID?: number) => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/hands?limit=30&offset=${offset}`)
+      const url = beforeID ? `/api/hands?limit=30&before_id=${beforeID}` : '/api/hands?limit=30'
+      const res = await fetch(url)
       const batch: HandSummary[] = await res.json()
-      setHands((prev) => (offset === 0 ? batch : [...prev, ...batch]))
+      setHands((prev) => (beforeID ? [...prev, ...batch] : batch))
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    load(0)
+    load()
   }, [])
 
   const openHand = async (id: number) => {
@@ -174,7 +176,11 @@ export function ReviewPage() {
             </div>
           )
         })}
-        <button className="btn" disabled={loading} onClick={() => load(hands.length)}>
+        <button
+          className="btn"
+          disabled={loading}
+          onClick={() => load(hands[hands.length - 1]?.id)}
+        >
           {loading ? '加载中…' : '加载更多'}
         </button>
       </div>

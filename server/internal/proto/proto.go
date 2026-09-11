@@ -21,6 +21,7 @@ const (
 	SActionRequest = "action_request"
 	SHandEvent     = "hand_event"
 	SHandEnd       = "hand_end"
+	SInfo          = "info"
 	SError         = "error"
 )
 
@@ -185,6 +186,12 @@ type HandEnd struct {
 	Results       []ResultInfo   `json:"results"`
 	Pots          []PotInfo      `json:"pots"`
 	RevealedHoles []RevealedHole `json:"revealed_holes,omitempty"`
+}
+
+// InfoMsg 服务端普通提示（如补码生效），非错误。
+type InfoMsg struct {
+	Type    string `json:"type"` // "info"
+	Message string `json:"message"`
 }
 
 // ErrorMsg 服务端错误提示。

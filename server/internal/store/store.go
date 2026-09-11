@@ -209,6 +209,32 @@ func (d *DB) ListHands(limit, offset int) ([]Hand, error) {
 	return out, rows.Err()
 }
 
+// ListHandsBefore 游标分页：返回 id < beforeID 的最新 limit 条（倒序）。
+// beforeID <= 0 表示从最新开始。游标分页不受翻页期间新手牌入库的影响。
+func (d *DB) ListHandsBefore(limit, beforeID int64) ([]Hand, error) {
+	if limit <= 0 {
+		limit = 50
+	}
+	if beforeID <= 0 {
+		beforeID = 1<<62 - 1
+	}
+	rows, err := d.db.Query(
+		`SELECT `+handCols+` FROM hands WHERE id < ? ORDER BY id DESC LIMIT ?`, beforeID, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	out := []Hand{}
+	for rows.Next() {
+		h, err := scanHand(rows)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, *h)
+	}
+	return out, rows.Err()
+}
+
 // GetHand 返回单手牌完整记录（含动作流水）。不存在返回 nil, nil。
 func (d *DB) GetHand(id int64) (*Hand, error) {
 	h, err := scanHand(d.db.QueryRow(`SELECT `+handCols+` FROM hands WHERE id = ?`, id))

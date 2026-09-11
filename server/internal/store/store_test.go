@@ -89,6 +89,45 @@ func TestGetHandMissing(t *testing.T) {
 	}
 }
 
+func TestListHandsBeforeCursor(t *testing.T) {
+	db := openTemp(t)
+	var ids []int64
+	for i := 0; i < 5; i++ {
+		id, err := db.SaveHand(sampleHand())
+		if err != nil {
+			t.Fatal(err)
+		}
+		ids = append(ids, id)
+	}
+	// beforeID <= 0 从最新开始
+	page, err := db.ListHandsBefore(2, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page) != 2 || page[0].ID != ids[4] || page[1].ID != ids[3] {
+		t.Fatalf("first page wrong: %+v", page)
+	}
+	// 游标翻页：即使此时插入手牌也不受影响
+	if _, err := db.SaveHand(sampleHand()); err != nil {
+		t.Fatal(err)
+	}
+	page2, err := db.ListHandsBefore(2, page[1].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page2) != 2 || page2[0].ID != ids[2] || page2[1].ID != ids[1] {
+		t.Fatalf("second page wrong: %+v", page2)
+	}
+	// 最后一页不足 limit
+	page3, err := db.ListHandsBefore(2, page2[1].ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(page3) != 1 || page3[0].ID != ids[0] {
+		t.Fatalf("last page wrong: %+v", page3)
+	}
+}
+
 func TestStats(t *testing.T) {
 	db := openTemp(t)
 	// 手 1：人类翻前 raise + 翻后 bet 被跟（VPIP=是, PFR=是）

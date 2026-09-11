@@ -25,6 +25,13 @@ func (t *Table) send(v any) {
 	}
 }
 
+// sendCritical 向人类客户端发不可丢弃的消息（满缓冲会短暂等待，见 Client.sendCritical）。
+func (t *Table) sendCritical(v any) {
+	if t.human != nil {
+		t.human.sendCritical(v)
+	}
+}
+
 // drainEvents 把引擎日志中的新动作与新发的街转为 hand_event 推给人类客户端。
 func (t *Table) drainEvents() {
 	e := t.cur
@@ -191,7 +198,7 @@ func (t *Table) finishHand(e *engine.Engine, seed int64, startedAt time.Time, st
 	for _, p := range e.Pots() {
 		he.Pots = append(he.Pots, proto.PotInfo{Amount: p.Amount, Winners: p.Winners})
 	}
-	t.send(he)
+	t.sendCritical(he)
 
 	t.stacks = final
 	t.pushState() // 终局快照：含摊牌揭示的底牌
